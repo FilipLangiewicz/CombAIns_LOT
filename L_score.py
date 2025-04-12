@@ -1,19 +1,32 @@
 import pandas as pd
 
 def L_score(y_true, y_pred):
-    # Przekształcamy y_pred do DataFrame, aby było kompatybilne z pandas merge
-    y_pred_df = pd.DataFrame(y_pred, columns=['y'])
+    '''
+    Funkcja oblicza L_score na podstawie danych y_true i y_pred.
+    y_true powinno być DataFrame lub Series z kolumnami 'label' i 'clicked'.
+    params:
+    y_true: DataFrame lub Series z kolumnami 'label' i 'clicked'
+    y_pred: DataFrame lub Series z kolumną 'y_pred'
+    return:
+    L_score: float
+    '''
     
-    # Zakładając, że y_true jest Series, konwertujemy ją na DataFrame
-    y_true_df = pd.DataFrame(y_true)
+    # Konwertujemy y_true (jeśli to Series) na DataFrame, jeśli trzeba
+    if isinstance(y_true, pd.Series):
+        y_true_df = y_true.to_frame()
+    else:
+        y_true_df = y_true.copy()
     
-    # Łączenie y_true z y_pred po kolumnie 'y'
-    joined = y_true_df.merge(y_pred_df, left_index=True, right_index=True, how='inner')
-    
-    # Filtrowanie tylko tych, gdzie 'clicked' == 1
-    filtered_data = joined[joined['clicked'] == 1]
-    
+    # Dodajemy kolumnę y_pred jako nową kolumnę
+    y_true_df['y_pred'] = y_pred
+
+    # Filtrowanie: tylko poprawne predykcje
+    correct_preds = y_true_df[y_true_df['label'] == y_true_df['y_pred']]
+
+    # Filtrowanie: tylko kliknięcia
+    filtered = correct_preds[correct_preds['clicked'] == 1]
+
     # Obliczanie L_score
-    L_score = filtered_data.shape[0] / sum(y_true_df['clicked'])
-    
-    return L_score
+    score = filtered.shape[0] / y_true_df['clicked'].sum()
+
+    return score
