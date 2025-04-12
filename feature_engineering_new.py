@@ -461,11 +461,11 @@ if __name__ == "__main__":
         )
         
         # Save processed training data
-        train_output_path = os.path.join(output_dir, "processed_x_train.csv")
+        train_output_path = os.path.join(output_dir, "processed_x_train_2.csv")
         df_train_processed.to_csv(train_output_path, index=False)
         
         # Save processed test data
-        test_output_path = os.path.join(output_dir, "processed_x_valid.csv")
+        test_output_path = os.path.join(output_dir, "processed_x_valid_2.csv")
         df_test_processed.to_csv(test_output_path, index=False)
         
         print(f"Processed train data shape: {df_train_processed.shape}")
