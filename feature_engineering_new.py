@@ -231,20 +231,25 @@ def encode_categorical_features(df_train, df_test=None):
             ohe_cols_test = encoder.transform(df_test[existing_ohe_features])
             
             # Create dataframes with the encoded columns
+            feature_names = encoder.get_feature_names_out(existing_ohe_features)
             ohe_df_train = pd.DataFrame(
                 ohe_cols_train, 
-                columns=encoder.get_feature_names_out(existing_ohe_features),
+                columns=feature_names,
                 index=df_train.index
             )
             ohe_df_test = pd.DataFrame(
                 ohe_cols_test, 
-                columns=encoder.get_feature_names_out(existing_ohe_features),
+                columns=feature_names,
                 index=df_test.index
             )
+            
+            # Keep track of one-hot encoded column names to avoid scaling them later
+            one_hot_column_names = list(feature_names)
         else:
             # No categorical features for one-hot encoding
             ohe_df_train = pd.DataFrame(index=df_train.index)
             ohe_df_test = pd.DataFrame(index=df_test.index)
+            one_hot_column_names = []
         
         # Frequency encoding for all categorical features
         freq_cols_train = pd.DataFrame(index=df_train.index)
@@ -270,7 +275,7 @@ def encode_categorical_features(df_train, df_test=None):
         final_train = pd.concat([numeric_train, ohe_df_train, freq_cols_train], axis=1)
         final_test = pd.concat([numeric_test, ohe_df_test, freq_cols_test], axis=1)
         
-        return final_train, final_test
+        return final_train, final_test, one_hot_column_names
     
     # If no test set is provided, only process train set
     else:
@@ -289,6 +294,7 @@ def encode_categorical_features(df_train, df_test=None):
         else:
             # No categorical features for one-hot encoding
             ohe_df = pd.DataFrame(index=df_train.index)
+        one_hot_column_names = []
         
         # Frequency encoding for all categorical features
         freq_cols = pd.DataFrame(index=df_train.index)
@@ -307,14 +313,35 @@ def encode_categorical_features(df_train, df_test=None):
         # Combine all features
         final = pd.concat([numeric, ohe_df, freq_cols], axis=1)
         
-        return final
+        return final, one_hot_column_names
 
-def scale_numeric_features(df_train, df_test=None):
+def scale_numeric_features(df_train, df_test=None, one_hot_cols=None):
     """
     Scale numeric features using StandardScaler
+    
+    Parameters:
+    -----------
+    df_train : pd.DataFrame
+        Training data to scale
+    df_test : pd.DataFrame, optional
+        Test data to scale
+    one_hot_cols : list, optional
+        List of one-hot encoded column names to exclude from scaling
+        
+    Returns:
+    --------
+    pd.DataFrame or tuple of pd.DataFrame
+        Scaled dataframes
     """
     # Identify numeric columns to scale
     numeric_cols = df_train.select_dtypes(include=['int64', 'float64']).columns
+    
+    # Exclude one-hot encoded columns from scaling if provided
+    if one_hot_cols:
+        numeric_cols = [col for col in numeric_cols if col not in one_hot_cols]
+        print(f"Excluding {len(one_hot_cols)} one-hot encoded columns from scaling")
+    
+    print(f"Scaling {len(numeric_cols)} numeric features")
     
     # Initialize scaler
     scaler = StandardScaler()
@@ -391,20 +418,24 @@ def feature_pipeline(x_train_path, y_train_path=None, x_test_path=None, y_test_p
         df_test_engineered = engineer_features(df_test, imputer=numeric_imputer, is_train=False)
         
         # Encode categorical features
-        df_train_encoded, df_test_encoded = encode_categorical_features(df_train_engineered, df_test_engineered)
+        df_train_encoded, df_test_encoded, one_hot_cols = encode_categorical_features(
+            df_train_engineered, df_test_engineered
+        )
         
-        # Scale numeric features
-        df_train_final, df_test_final = scale_numeric_features(df_train_encoded, df_test_encoded)
+        # Scale numeric features, but exclude one-hot encoded columns
+        df_train_final, df_test_final = scale_numeric_features(
+            df_train_encoded, df_test_encoded, one_hot_cols=one_hot_cols
+        )
         
         return df_train_final, df_test_final
     
     # If no test data, only process training data
     else:
         # Encode categorical features
-        df_train_encoded = encode_categorical_features(df_train_engineered)
+        df_train_encoded, one_hot_cols = encode_categorical_features(df_train_engineered)
         
-        # Scale numeric features
-        df_train_final = scale_numeric_features(df_train_encoded)
+        # Scale numeric features, but exclude one-hot encoded columns
+        df_train_final = scale_numeric_features(df_train_encoded, one_hot_cols=one_hot_cols)
         
         return df_train_final
 
@@ -413,7 +444,7 @@ if __name__ == "__main__":
     # Set file paths - use absolute paths to avoid FileNotFoundError
     script_dir = os.path.dirname(os.path.abspath(__file__))
     x_train_path = os.path.join(script_dir, "data", "x_train.csv")
-    x_test_path = os.path.join(script_dir, "data", "x_valid.csv")  # Added X_test path
+    x_test_path = os.path.join(script_dir, "data", "x_valid.csv")  
     
     # Create output directory if it doesn't exist
     output_dir = os.path.join(script_dir, 'data', 'feature_engineering')
@@ -430,11 +461,11 @@ if __name__ == "__main__":
         )
         
         # Save processed training data
-        train_output_path = os.path.join(output_dir, "processed_train_x.csv")
+        train_output_path = os.path.join(output_dir, "processed_x_train.csv")
         df_train_processed.to_csv(train_output_path, index=False)
         
         # Save processed test data
-        test_output_path = os.path.join(output_dir, "processed_test_x.csv")
+        test_output_path = os.path.join(output_dir, "processed_x_valid.csv")
         df_test_processed.to_csv(test_output_path, index=False)
         
         print(f"Processed train data shape: {df_train_processed.shape}")
