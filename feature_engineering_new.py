@@ -97,22 +97,11 @@ def engineer_features(df, imputer=None, is_train=True):
     df_engineered['is_solo_traveler'] = (df_engineered['booking_pax_count'] == 1).astype(int)
     
     # Create family traveler flag (has children or infants)
-    df_engineered['is_family'] = ((df_engineered['booking_child_count'] > 0) | 
-                                 (df_engineered['booking_infant_count'] > 0)).astype(int)
+    # df_engineered['is_family'] = ((df_engineered['booking_child_count'] > 0) | 
+    #                              (df_engineered['booking_infant_count'] > 0)).astype(int)
     
     # Ratio of adults to total travelers
     df_engineered['adult_ratio'] = df_engineered['booking_adult_count'] / df_engineered['booking_pax_count']
-    
-    # 3. Temporal features
-    # Create cyclical features for month and hour
-    df_engineered['sin_reservation_month'] = np.sin(2 * np.pi * df_engineered['booking_reservation_month']/12)
-    df_engineered['cos_reservation_month'] = np.cos(2 * np.pi * df_engineered['booking_reservation_month']/12)
-    
-    df_engineered['sin_departure_month'] = np.sin(2 * np.pi * df_engineered['leg_departure_month']/12)
-    df_engineered['cos_departure_month'] = np.cos(2 * np.pi * df_engineered['leg_departure_month']/12)
-    
-    df_engineered['sin_departure_hour'] = np.sin(2 * np.pi * df_engineered['leg_departure_hour']/24)
-    df_engineered['cos_departure_hour'] = np.cos(2 * np.pi * df_engineered['leg_departure_hour']/24)
     
     # Categorize departure time
     time_bins = [0, 6, 12, 18, 24]
@@ -122,20 +111,20 @@ def engineer_features(df, imputer=None, is_train=True):
     
     # 4. Booking behavior features
     # Categorize booking window
-    booking_bins = [0, 1, 3, 7, 14, 30, float('inf')]
-    booking_labels = ['same_day', '1-2_days', '3-7_days', '1-2_weeks', '2-4_weeks', '4+_weeks']
-    df_engineered['booking_window_category'] = pd.cut(df_engineered['booking_window_w'], 
-                                                     bins=booking_bins, labels=booking_labels, right=False)
+    # booking_bins = [0, 1, 3, 7, 14, 30, float('inf')]
+    # booking_labels = ['same_day', '1-2_days', '3-7_days', '1-2_weeks', '2-4_weeks', '4+_weeks']
+    # df_engineered['booking_window_category'] = pd.cut(df_engineered['booking_window_w'], 
+    #                                                  bins=booking_bins, labels=booking_labels, right=False)
     
     # Last minute booking flag
-    df_engineered['is_last_minute'] = (df_engineered['booking_window_w'] <= 3).astype(int)
+    # df_engineered['is_last_minute'] = (df_engineered['booking_window_w'] <= 3).astype(int)
     
     # 5. Flight characteristics
     # Long vs Short flight categorization (if not already in coupon_range)
     df_engineered['long_flight'] = (df_engineered['leg_duration_h'] >= 4).astype(int)
     
     # Flight duration to booking window ratio
-    df_engineered['duration_booking_ratio'] = df_engineered['leg_duration_h'] / (df_engineered['booking_window_w'] + 1)
+    # df_engineered['duration_booking_ratio'] = df_engineered['leg_duration_h'] / (df_engineered['booking_window_w'] + 1)
     
     # Is international flight
     df_engineered['is_international'] = (df_engineered['leg_origin_country_code'] != 
@@ -147,18 +136,18 @@ def engineer_features(df, imputer=None, is_train=True):
     
     # 7. Trip complexity
     # Multi-leg complexity
-    df_engineered['has_multiple_legs'] = (df_engineered['booking_leg_count'] > 1).astype(int)
-    df_engineered['has_stopover'] = (df_engineered['leg_stopover_time_h'] > 0).astype(int)
+    # df_engineered['has_multiple_legs'] = (df_engineered['booking_leg_count'] > 1).astype(int)
+    # df_engineered['has_stopover'] = (df_engineered['leg_stopover_time_h'] > 0).astype(int)
     
     # 8. Interaction features
     # Trip type and cabin class interaction
-    df_engineered['trip_cabin_interaction'] = df_engineered['booking_trip_type'] + '_' + df_engineered['coupon_cabin_class']
+    # df_engineered['trip_cabin_interaction'] = df_engineered['booking_trip_type'] + '_' + df_engineered['coupon_cabin_class']
     
     # Booking window and trip type interaction
-    df_engineered['window_trip_interaction'] = df_engineered['is_last_minute'].astype(str) + '_' + df_engineered['booking_trip_type']
+    # df_engineered['window_trip_interaction'] = df_engineered['is_last_minute'].astype(str) + '_' + df_engineered['booking_trip_type']
     
     # Range and cabin interaction
-    df_engineered['range_cabin_interaction'] = df_engineered['coupon_range'] + '_' + df_engineered['coupon_cabin_class']
+    # df_engineered['range_cabin_interaction'] = df_engineered['coupon_range'] + '_' + df_engineered['coupon_cabin_class']
     
     # 9. Sales channel features
     # Online vs. offline booking
