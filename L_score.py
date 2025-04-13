@@ -11,22 +11,17 @@ def L_score(y_true, y_pred):
     L_score: float
     '''
     
-    # Konwertujemy y_true (jeśli to Series) na DataFrame, jeśli trzeba
     if isinstance(y_true, pd.Series):
         y_true_df = y_true.to_frame()
     else:
         y_true_df = y_true.copy()
     
-    # Dodajemy kolumnę y_pred jako nową kolumnę
     y_true_df['y_pred'] = y_pred
 
-    # Filtrowanie: tylko poprawne predykcje
     correct_preds = y_true_df[y_true_df['label'] == y_true_df['y_pred']]
 
-    # Filtrowanie: tylko kliknięcia
     filtered = correct_preds[correct_preds['clicked'] == 1]
 
-    # Obliczanie L_score
     score = filtered.shape[0] / y_true_df['clicked'].sum()
 
     return score
