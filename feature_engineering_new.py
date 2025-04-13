@@ -29,15 +29,14 @@ def load_data(x_path, y_path=None):
     print(f"Looking for files in: {os.getcwd()}")
     print(f"Attempting to load: {x_path}")
     
-    # Check if files exist before loading
+   
     if not os.path.exists(x_path):
         raise FileNotFoundError(f"X data file not found: {x_path}")
         
-    # Load the features file
+
     df_x = pd.read_csv(x_path)
     print(f"Loaded X data shape: {df_x.shape}")
     
-    # If y_path is provided, load the target file
     if y_path:
         print(f"Attempting to load: {y_path}")
         if not os.path.exists(y_path):
@@ -47,10 +46,9 @@ def load_data(x_path, y_path=None):
         print(f"Loaded Y data shape: {df_y.shape}")
         return df_x, df_y
     
-    # If no y_path, return just the features
     return df_x
 
-# Function to engineer features
+
 def engineer_features(df, imputer=None, is_train=True):
     """
     Engineer features for a dataset
@@ -70,11 +68,10 @@ def engineer_features(df, imputer=None, is_train=True):
     pd.DataFrame or tuple
         Engineered dataframe, or (engineered_dataframe, fitted_imputer) if is_train=True
     """
-    # Create a copy to avoid modifying the original dataframe
+
     df_engineered = df.copy()
     
     # 1. Handle missing values
-    # For numeric columns - fill with median
     numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
     
     if is_train:
@@ -96,6 +93,7 @@ def engineer_features(df, imputer=None, is_train=True):
     # Create solo traveler flag
     df_engineered['is_solo_traveler'] = (df_engineered['booking_pax_count'] == 1).astype(int)
     
+    # Commented out because of correlation
     # Create family traveler flag (has children or infants)
     # df_engineered['is_family'] = ((df_engineered['booking_child_count'] > 0) | 
     #                              (df_engineered['booking_infant_count'] > 0)).astype(int)
@@ -103,7 +101,7 @@ def engineer_features(df, imputer=None, is_train=True):
     # Ratio of adults to total travelers
     df_engineered['adult_ratio'] = df_engineered['booking_adult_count'] / df_engineered['booking_pax_count']
     
-    # Categorize departure time
+    
     time_bins = [0, 6, 12, 18, 24]
     time_labels = ['night', 'morning', 'afternoon', 'evening']
     df_engineered['departure_time_of_day'] = pd.cut(df_engineered['leg_departure_hour'], 
@@ -111,13 +109,12 @@ def engineer_features(df, imputer=None, is_train=True):
     
     # 4. Booking behavior features
     # Categorize booking window
-    # booking_bins = [0, 1, 3, 7, 14, 30, float('inf')]
-    # booking_labels = ['same_day', '1-2_days', '3-7_days', '1-2_weeks', '2-4_weeks', '4+_weeks']
-    # df_engineered['booking_window_category'] = pd.cut(df_engineered['booking_window_w'], 
-    #                                                  bins=booking_bins, labels=booking_labels, right=False)
+    booking_bins = [0, 1, 3, 7, 14, 30, float('inf')]
+    booking_labels = ['same_day', '1-2_days', '3-7_days', '1-2_weeks', '2-4_weeks', '4+_weeks']
+    df_engineered['booking_window_category'] = pd.cut(df_engineered['booking_window_w'], 
+                                                     bins=booking_bins, labels=booking_labels, right=False)
     
-    # Last minute booking flag
-    # df_engineered['is_last_minute'] = (df_engineered['booking_window_w'] <= 3).astype(int)
+    
     
     # 5. Flight characteristics
     # Long vs Short flight categorization (if not already in coupon_range)
@@ -126,7 +123,7 @@ def engineer_features(df, imputer=None, is_train=True):
     # Flight duration to booking window ratio
     # df_engineered['duration_booking_ratio'] = df_engineered['leg_duration_h'] / (df_engineered['booking_window_w'] + 1)
     
-    # Is international flight
+    
     df_engineered['is_international'] = (df_engineered['leg_origin_country_code'] != 
                                        df_engineered['leg_destination_country_code']).astype(int)
     
@@ -156,18 +153,7 @@ def engineer_features(df, imputer=None, is_train=True):
     # Agency vs. direct booking
     df_engineered['is_agency_booking'] = df_engineered['booking_sales_channel'].isin(['agents', 'internal_agents', 'aiport_agents']).astype(int)
     
-    # 10. Email domain features (if available)
-    if 'email' in df_engineered.columns:
-        try:
-            # Extract email domains
-            df_engineered['email_domain'] = df_engineered['email'].str.split('@').str[1]
-            
-            # Create business vs. personal email flag
-            business_domains = ['company', 'corp', 'business', 'enterprise']  # Example business domains
-            df_engineered['is_business_email'] = df_engineered['email_domain'].str.contains('|'.join(business_domains), case=False).fillna(False).astype(int)
-        except:
-            # If email processing fails, ignore these features
-            pass
+    
     
     # 11. Categorical encoding functions
     # Create binary flags for premium features
