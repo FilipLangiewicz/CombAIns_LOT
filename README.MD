@@ -1,5 +1,7 @@
 # CombAIns_LOT
 
+main.ipynb is the most important - final file here
+
 **Optimizing Pre-Flight Communications to Enhance Customer Experience**
 
 CombAIns_LOT is a machine learning project aimed at optimizing pre-flight communications by predicting which email layouts will generate the highest click rates. The project leverages innovative feature engineering techniques and custom loss function designs to improve prediction performance in a 10-class classification task.
