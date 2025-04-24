@@ -112,5 +112,5 @@ jupyter notebook main.ipynb
 
 ## Acknowledgements
 
-This project was developed during the LOT Hackathon and is inspired by real-world challenges in airline customer communication optimization.  
+This project was developed during the HackCarpathia2025 and is inspired by real-world challenges in airline customer communication optimization.  
 Special thanks to the organizers, mentors, and all the fellow participants who made the event engaging and insightful.
