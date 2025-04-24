@@ -16,10 +16,9 @@ CombAIns_LOT is a machine learning project aimed at optimizing pre-flight commun
   - [Approach II – Decomposing the Target Column](#approach-ii--decomposing-the-target-column)
 - [Feature Engineering](#feature-engineering)
 - [Repository Structure](#repository-structure)
+- [Data Processing and Augmentation](#data-processing-and-augmentation)
 - [Installation and Running](#installation-and-running)
-- [Example Code](#example-code)
 - [Authors](#authors)
-- [License](#license)
 - [Acknowledgements](#acknowledgements)
 
 ---
@@ -65,7 +64,53 @@ These features are processed through a pipeline that includes feature extraction
 
 ---
 
-## Repository Structure
+## Data Processing and Augmentation
 
-Below is an example of the repository structure. Adjust it as necessary:
+In order to improve model training and robustness, we apply custom data augmentation strategies:
 
+- **Label Creation**:  
+  We concatenate multiple categorical features (`graphic_design`, `top_1_section`, `top_2_section`, `top_3_section`) to create a compound target label, which is later encoded into integer class labels.
+
+- **Negative Sample Generation**:  
+  For each original data point, we generate synthetic “negative” samples by modifying the layout label to other possible values (0–9), setting the `clicked` column to 0 for these rows. This approach balances the dataset and enhances the model's ability to distinguish effective layouts from ineffective ones.
+
+This augmented dataset forms the basis for training our classification models under both Approach I and Approach II described earlier.
+
+---
+
+## Installation and Running
+
+To run the project locally:
+
+```python
+# Clone the repository
+git clone https://github.com/yourusername/CombAIns_LOT.git
+cd CombAIns_LOT
+
+# (Optional) Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the main notebook
+jupyter notebook main.ipynb
+```
+
+## Authors
+
+* Filip Langiewicz – [@FilipLangiewicz](https://github.com/FilipLangiewicz)
+* Mikołaj Rowicki - [@MikolajRowicki](https://github.com/MikolajRowicki)
+* Jakub Półtorak - [@JakubPoltorak147](https://github.com/JakubPoltorak147)
+* Igor Rudolf - [@Igor](https://github.com/IgorRudolf)
+* Maciej Momot - [@MaciejMomot](https://github.com/MaciejMomot)
+* Michał Pytel - [@Michael-Pytel](https://github.com/Michael-Pytel)
+
+---
+
+
+## Acknowledgements
+
+This project was developed during the LOT Hackathon and is inspired by real-world challenges in airline customer communication optimization.  
+Special thanks to the organizers, mentors, and all the fellow participants who made the event engaging and insightful.
